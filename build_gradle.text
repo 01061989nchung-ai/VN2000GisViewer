@@ -1,0 +1,82 @@
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "vn.gis.vn2000viewer"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "vn.gis.vn2000viewer"
+        minSdk = 29 // Hỗ trợ từ Android 10 (API 29) đến Android 14+ (API 34+)
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // Ký bằng debug signing config để người dùng tải APK từ GitHub Actions cài được ngay
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        debug {
+            isDebuggable = true
+        }
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES,LICENSE*,NOTICE*}"
+        }
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+}
+
+dependencies {
+    // AndroidX & Material Design
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.activity:activity-ktx:1.9.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+
+    // Kotlin Coroutines cho xử lý đa luồng (Dispatchers.IO) tệp GIS lên tới 100MB
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // Thư viện GDAL/OGR Java Bindings chính thức (đọc vector DGN V8/V7 & raster GeoTIFF)
+    implementation("org.gdal:gdal:3.10.0")
+
+    // Thư viện PROJ.4 (Eclipse LocationTech Proj4J) chuyển đổi tọa độ VN-2000 <-> WGS84 (7 tham số)
+    implementation("org.locationtech.proj4j:proj4j:1.3.0")
+    implementation("org.locationtech.proj4j:proj4j-epsg:1.3.0")
+
+    // Thư viện NGA TIFF giải mã trực tiếp các thẻ GeoTIFF (ModelPixelScale, ModelTiepoint) và mảnh ảnh
+    implementation("mil.nga:tiff:3.0.0")
+}

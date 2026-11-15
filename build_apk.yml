@@ -1,0 +1,49 @@
+name: Build VN-2000 GIS Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Cho phép bấm nút chạy thủ công ngay trên giao diện web GitHub
+
+jobs:
+  build-apk:
+    name: Compile Android APK (Debug & Signed Release)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Tải mã nguồn từ kho lưu trữ (Checkout Repository)
+        uses: actions/checkout@v4
+
+      - name: 2. Cài đặt Java JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 3. Cài đặt Android SDK tự động
+        uses: android-actions/setup-android@v3
+
+      - name: 4. Cài đặt và khởi tạo Gradle 8.7 (Không cần tải file gradle-wrapper.jar lên GitHub)
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
+      - name: 5. Biên dịch ra file APK (Debug & Release đã ký thử nghiệm)
+        run: |
+          gradle assembleDebug assembleRelease --stacktrace
+
+      - name: 6. Đóng gói file APK Debug lên mục Artifacts để tải về điện thoại
+        uses: actions/upload-artifact@v4
+        with:
+          name: VN2000-GIS-Viewer-Debug-APK
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: 7. Đóng gói file APK Release lên mục Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: VN2000-GIS-Viewer-Release-APK
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
